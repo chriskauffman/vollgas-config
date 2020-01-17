@@ -7,13 +7,14 @@
 #
 
 # Python variables
-virtualenv_name := config-tool
+virtualenv_name := vollgas_config
 python_version := 3.7.5
-python_mdules := black pylava pytest
+# Modules loaded by poetry
+# python_mdules :=
 
 
 .PHONY : init
-init : | $(log_dir)
+init : | poetry-install
 	# TBD
 
 .PHONY : test
@@ -22,23 +23,26 @@ test :
 
 .python-version: install-python
 
-.PHONY : install-poetry
-install-poetry: install-python
+.PHONY : poetry-install
+poetry-install: | python-install
 ifneq ($(findstring "poetry",$(shell pip list --format=columns | awk '{if ($$1 != "Package" && $$1 !~ /^-/) print $$1}')),"poetry")
+	- pip install -U $(shell pip list --outdated --format=columns | awk '{if ($$1 != "Package" && $$1 !~ /^-/) print $$1}')
 	pip install poetry
 endif
-	poetry self:update
+	poetry self update
 
-.PHONY : install-python
-install-python:
+.PHONY : python-install
+python-install:
 ifneq ($(findstring $(virtualenv_name),$(shell pyenv versions)),$(virtualenv_name))
-	pyenv install $(python_version)
+	pyenv virtualenv $(python_version) $(virtualenv_name)
 endif
-	pyenv local $(python_version)
+	pyenv local $(virtualenv_name)
 	pip install --upgrade pip
 	- pip install -U $(shell pip list --outdated --format=columns | awk '{if ($$1 != "Package" && $$1 !~ /^-/) print $$1}')
-	- pip install $(python_mdules)
+	# Modules loaded by poetry
+	# - pip install $(python_mdules)
 
 .PHONY : clean
 clean :
-	# TBD
+	- rm .python-version
+	- pyenv virtualenv-delete -f $(virtualenv_name)
