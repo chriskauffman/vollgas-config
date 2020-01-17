@@ -59,7 +59,12 @@ def test_find_config():  # pylint: disable=missing-docstring
 
 
 def test_load_config():  # pylint: disable=missing-docstring
-    assert configtool.load_yaml_config(resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE))) is not None
+    assert (
+        configtool.load_yaml_config(
+            resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE))
+        )
+        is not None
+    )
 
 
 def teardown_module():

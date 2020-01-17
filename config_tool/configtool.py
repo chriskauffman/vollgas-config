@@ -27,7 +27,9 @@ import yaml
 from pkg_resources import resource_filename
 
 
-def find_config(config_filename: str, home_config_dir: str, logger: logging.Logger = None) -> str:
+def find_config(
+    config_filename: str, home_config_dir: str, logger: logging.Logger = None
+) -> str:
     """Routine for finding the config file.
 
     Searches the preferred paths, in preferred order, to locate specified config file.
