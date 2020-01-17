@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Shared functions and tools.
 
-Copyright (c) 2019 Christopher Kauffman
+Copyright (c) 2020 Christopher Kauffman
 
 Attributes:
     None
@@ -27,81 +27,108 @@ import yaml
 from pkg_resources import resource_filename
 
 
-def find_config(
-    config_filename: str, home_config_dir: str, logger: logging.Logger = None
-) -> str:
-    """Routine for finding the config file.
+class Config:
+    """Config Class
 
-    Searches the preferred paths, in preferred order, to locate specified config file.
-
-    Args:
-        config_filename (str): file name without path
-        config_filename (str): file name without path
-
-    Returns:
-        str: fully-qualified file name
-
-    Raises:
-        none
-
+    Finds and loads config object
     """
-    logger = logger or logging.getLogger(__name__)
 
-    logger.debug("find_config params: config_filename=%s", config_filename)
+    def __init__(
+        self, config_filename: str, home_config_dir: str, logger: logging.Logger = None
+    ):
+        """Routine for finding the config file.
 
-    # Build prioritized list of config files
-    config_file_list = (
-        "{0}/{1}".format(os.getcwd(), config_filename),
-        "{0}/{1}/{2}".format(os.path.expanduser("~"), home_config_dir, config_filename),
-        "/usr/local/etc/{0}".format(config_filename),
-        "/etc/{0}".format(config_filename),
-        resource_filename(__name__, "resources/{0}".format(config_filename)),
-    )
+        Searches the preferred paths, in preferred order, to locate specified config file.
 
-    # See which config file exists, return the 1st one found
-    for config_file in config_file_list:
-        if os.path.exists(config_file):
-            logger.debug("find_config: using %s", config_file)
-            return config_file
+        Args:
+            config_filename (str): file name without path
+            home_config_dir (str): directory name for app config, example ".app"
 
-    return None
+        Returns:
+            None
 
+        Raises:
+            none
 
-# ToDo: Add JSON load
-# def load_json_config (config_fq_filename: str, logger: logging.Logger = None) -> dict:
+        """
+        self._home_config_dir = home_config_dir
+        self.config_fq_filename = self.find_config(config_filename)
+        self.data = self.load_yaml_config(self.config_fq_filename)
 
+    def find_config(self, config_filename: str, logger: logging.Logger = None) -> str:
+        """Routine for finding the config file.
 
-def load_yaml_config(config_fq_filename: str, logger: logging.Logger = None) -> dict:
-    """Routine for loading config from YAML file.
+        Searches the preferred paths, in preferred order, to locate specified config file.
 
-    Args:
-        config_fq_filename (str): fully-qualified file name
+        Args:
+            config_filename (str): file name without path
 
-    Returns:
-        dict: config dictionary
+        Returns:
+            str: fully-qualified file name
 
-    Raises:
-        none
+        Raises:
+            none
 
-    """
-    logger = logger or logging.getLogger(__name__)
+        """
+        logger = logger or logging.getLogger(__name__)
 
-    logger.debug("load_config params: config_fq_filename=%s", config_fq_filename)
+        logger.debug("find_config params: config_filename=%s", config_filename)
 
-    config = {}
-    if config_fq_filename and os.path.exists(config_fq_filename):
-        logger.info("Reading config from file: %s", config_fq_filename)
-        try:
-            with open(config_fq_filename, "rt") as config_file:
-                config = yaml.safe_load(config_file.read())
-        except IOError:
-            logger.error("Config file IOError: %s", config_fq_filename)
-        # Adding reference to filename used when retrieving config
-        if config is None:
-            config = {}
-        config["_ConfigFQFilename"] = config_fq_filename
-        logger.debug(json.dumps(config))
-    else:
-        logger.error("Config file %s not found.", config_fq_filename)
+        # Build prioritized list of config files
+        config_file_list = (
+            "{0}/{1}".format(os.getcwd(), config_filename),
+            "{0}/{1}/{2}".format(
+                os.path.expanduser("~"), self._home_config_dir, config_filename
+            ),
+            "/usr/local/etc/{0}".format(config_filename),
+            "/etc/{0}".format(config_filename),
+            resource_filename(__name__, "resources/{0}".format(config_filename)),
+        )
+
+        # See which config file exists, return the 1st one found
+        for config_file in config_file_list:
+            if os.path.exists(config_file):
+                logger.debug("find_config: using %s", config_file)
+                return config_file
+
         return None
-    return config
+
+    # ToDo: Add JSON load
+    # def load_json_config (config_fq_filename: str, logger: logging.Logger = None) -> dict:
+
+    def load_yaml_config(
+        self, config_fq_filename: str, logger: logging.Logger = None
+    ) -> dict:
+        """Routine for loading config from YAML file.
+
+        Args:
+            config_fq_filename (str): fully-qualified file name
+
+        Returns:
+            dict: config dictionary
+
+        Raises:
+            none
+
+        """
+        logger = logger or logging.getLogger(__name__)
+
+        logger.debug("load_config params: config_fq_filename=%s", config_fq_filename)
+
+        config = {}
+        if config_fq_filename and os.path.exists(config_fq_filename):
+            logger.info("Reading config from file: %s", config_fq_filename)
+            try:
+                with open(config_fq_filename, "rt") as config_file:
+                    config = yaml.safe_load(config_file.read())
+            except IOError:
+                logger.error("Config file IOError: %s", config_fq_filename)
+            # Adding reference to filename used when retrieving config
+            if config is None:
+                config = {}
+            config["_ConfigFQFilename"] = config_fq_filename
+            logger.debug(json.dumps(config))
+        else:
+            logger.error("Config file %s not found.", config_fq_filename)
+            return None
+        return config

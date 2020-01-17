@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Test routines for configtool. For use with pytest.
 
-Copyright (c) 2019 Christopher Kauffman
+Copyright (c) 2020 Christopher Kauffman
 
 Attributes:
     None
@@ -53,14 +53,16 @@ def setup_module():
 
 
 def test_find_config():  # pylint: disable=missing-docstring
+    test_config = config.Config(TEST_CONFIG_FILE, ".test_config_tool")
     for item in FILE_LIST:
-        assert config.find_config(TEST_CONFIG_FILE, ".test_config_tool") == item
+        assert test_config.find_config(TEST_CONFIG_FILE) == item
         os.remove(item)
 
 
 def test_load_config():  # pylint: disable=missing-docstring
+    test_config = config.Config(TEST_CONFIG_FILE, ".test_config_tool")
     assert (
-        config.load_yaml_config(
+        test_config.load_yaml_config(
             resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE))
         )
         is not None
