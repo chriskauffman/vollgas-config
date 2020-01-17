@@ -69,5 +69,12 @@ def test_load_config():  # pylint: disable=missing-docstring
     )
 
 
+def test_load_config_with_template():  # pylint: disable=missing-docstring
+    test_config = config.Config(
+        TEST_CONFIG_FILE, ".test_config_tool", template={"test_template": 10}
+    )
+    assert test_config.data["test_template"] == 10
+
+
 def teardown_module():
     os.rmdir(HOME_CONFIG_DIR)

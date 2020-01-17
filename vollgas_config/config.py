@@ -59,12 +59,14 @@ class Config:
         self.fq_filename = self.find_config(config_filename)
 
         loaded_config = self.load_yaml_config(self.fq_filename)
-        if template is not None and self.data is not None:
+        if template is not None and loaded_config is not None:
             self.data = {**template, **loaded_config}
         elif template is not None and loaded_config is None:
             self.data = {**template}
         elif template is None and loaded_config is not None:
             self.data = {**loaded_config}
+        else:
+            self.data = None
 
     def find_config(self, config_filename: str, logger: logging.Logger = None) -> str:
         """Routine for finding the config file.
