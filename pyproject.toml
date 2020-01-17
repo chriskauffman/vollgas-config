@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vollgas_config"
-version = "1.0.0-alpha.0"
+version = "1.0.0-alpha.1"
 description = "Config tool provides basic configuration file locating, loading and validation."
 authors = ["Christopher Kauffman <chriskauffman@vollgas.net>"]
 license = "MIT"

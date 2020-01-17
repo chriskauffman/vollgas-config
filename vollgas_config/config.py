@@ -34,7 +34,11 @@ class Config:
     """
 
     def __init__(
-        self, config_filename: str, home_config_dir: str, logger: logging.Logger = None
+        self,
+        config_filename: str,
+        home_config_dir: str,
+        template: dict = None,
+        logger: logging.Logger = None,
     ):
         """Routine for finding the config file.
 
@@ -52,8 +56,15 @@ class Config:
 
         """
         self._home_config_dir = home_config_dir
-        self.config_fq_filename = self.find_config(config_filename)
-        self.data = self.load_yaml_config(self.config_fq_filename)
+        self.fq_filename = self.find_config(config_filename)
+
+        loaded_config = self.load_yaml_config(self.fq_filename)
+        if template is not None and self.data is not None:
+            self.data = {**template, **loaded_config}
+        elif template is not None and loaded_config is None:
+            self.data = {**template}
+        elif template is None and loaded_config is not None:
+            self.data = {**loaded_config}
 
     def find_config(self, config_filename: str, logger: logging.Logger = None) -> str:
         """Routine for finding the config file.
