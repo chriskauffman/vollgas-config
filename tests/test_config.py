@@ -26,7 +26,7 @@ import yaml
 
 # from pkg_resources import resource_filename
 
-from config_tool import configtool
+from vollgas_config import config
 
 
 HOME_CONFIG_DIR = "{0}/.test_config_tool".format(os.path.expanduser("~"))
@@ -54,13 +54,13 @@ def setup_module():
 
 def test_find_config():  # pylint: disable=missing-docstring
     for item in FILE_LIST:
-        assert configtool.find_config(TEST_CONFIG_FILE, ".test_config_tool") == item
+        assert config.find_config(TEST_CONFIG_FILE, ".test_config_tool") == item
         os.remove(item)
 
 
 def test_load_config():  # pylint: disable=missing-docstring
     assert (
-        configtool.load_yaml_config(
+        config.load_yaml_config(
             resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE))
         )
         is not None

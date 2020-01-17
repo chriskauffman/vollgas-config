@@ -1,4 +1,4 @@
-from config_tool import __version__
+from vollgas_config import __version__
 
 
 def test_version():
