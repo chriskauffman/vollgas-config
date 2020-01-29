@@ -24,8 +24,6 @@ import logging
 import os.path
 import yaml
 
-from pkg_resources import resource_filename
-
 
 class Config:
     """Config Class
@@ -56,7 +54,10 @@ class Config:
 
         """
         self._home_config_dir = home_config_dir
-        self.fq_filename = self.find_config(config_filename)
+        if os.path.exists(config_filename):
+            self.fq_filename = config_filename
+        else:
+            self.fq_filename = self.find_config(config_filename)
 
         loaded_config = self.load_yaml_config(self.fq_filename)
         if template is not None and loaded_config is not None:
@@ -95,7 +96,6 @@ class Config:
             ),
             "/usr/local/etc/{0}".format(config_filename),
             "/etc/{0}".format(config_filename),
-            resource_filename(__name__, "resources/{0}".format(config_filename)),
         )
 
         # See which config file exists, return the 1st one found

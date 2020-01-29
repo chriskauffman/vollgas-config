@@ -35,8 +35,7 @@ FILE_LIST = (
     "{0}/{1}".format(os.getcwd(), TEST_CONFIG_FILE),
     "{0}/{1}".format(HOME_CONFIG_DIR, TEST_CONFIG_FILE),
     "/usr/local/etc/{0}".format(TEST_CONFIG_FILE),
-    # "/etc/{0}".format(TEST_CONFIG_FILE),
-    # resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE)),
+    "/etc/{0}".format(TEST_CONFIG_FILE),
 )
 
 
@@ -60,20 +59,31 @@ def test_find_config():  # pylint: disable=missing-docstring
 
 
 def test_load_config():  # pylint: disable=missing-docstring
-    test_config = config.Config(TEST_CONFIG_FILE, ".test_config_tool")
-    assert (
-        test_config.load_yaml_config(
-            resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE))
-        )
-        is not None
+    test_config = config.Config(
+        resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE)),
+        ".test_config_tool",
     )
+    assert test_config.fq_filename is not None
 
 
 def test_load_config_with_template():  # pylint: disable=missing-docstring
     test_config = config.Config(
-        TEST_CONFIG_FILE, ".test_config_tool", template={"test_template": 10}
+        resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE)),
+        ".test_config_tool",
+        template={"test_template": 10},
     )
     assert test_config.data["test_template"] == 10
+
+
+def test_load_config_with_template_2():  # pylint: disable=missing-docstring
+    test_template = {"test_value_1": 0, "test_value_2": 0}
+    test_config = config.Config(
+        resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE)),
+        ".test_config_tool",
+        template=test_template,
+    )
+    assert test_config.data["test_value_1"] == 1
+    assert test_config.data["test_value_2"] == 0
 
 
 def teardown_module():
