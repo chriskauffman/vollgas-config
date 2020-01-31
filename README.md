@@ -9,6 +9,6 @@ pip install git+https://chriskauffman@bitbucket.org/chriskauffman/vollgas-config
 pip install git+https://chriskauffman@bitbucket.org/chriskauffman/vollgas-config.git@v0.1.1
 
 
-## Poetry Linux Install
+## Poetry Ubuntu Linux Install
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python

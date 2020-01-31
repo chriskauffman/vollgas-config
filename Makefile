@@ -30,7 +30,9 @@ test :
 .PHONY : poetry-install
 poetry-install: | python-install
 ifneq ($(findstring "poetry",$(shell pip list --format=columns | awk '{if ($$1 != "Package" && $$1 !~ /^-/) print $$1}')),"poetry")
-	pip install --upgrade poetry
+	# https://python-poetry.org/docs/ recommends curl install
+	# pip install --upgrade poetry
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 endif
 	poetry self update
 	poetry install
