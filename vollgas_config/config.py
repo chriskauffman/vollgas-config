@@ -21,6 +21,7 @@ Todo:
 """
 import json
 import logging
+import mergedeep
 import os.path
 import yaml
 
@@ -55,13 +56,15 @@ class Config:
         """
         self._home_config_dir = home_config_dir
         if os.path.exists(config_filename):
-            self.fq_filename = config_filename
+            self.fq_filename = os.path.abspath(config_filename)
         else:
             self.fq_filename = self.find_config(config_filename)
 
         loaded_config = self.load_yaml_config(self.fq_filename)
         if template is not None and loaded_config is not None:
-            self.data = {**template, **loaded_config}
+            # self.data = {**template, **loaded_config}
+            self.data = {**template}
+            mergedeep.merge(self.data, loaded_config)
         elif template is not None and loaded_config is None:
             self.data = {**template}
         elif template is None and loaded_config is not None:
