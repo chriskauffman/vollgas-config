@@ -56,11 +56,11 @@ class Config:
         """
         self._home_config_dir = home_config_dir
         if os.path.exists(config_filename):
-            self.fq_filename = os.path.abspath(config_filename)
+            self.abs_filename = os.path.abspath(config_filename)
         else:
-            self.fq_filename = self.find_config(config_filename)
+            self.abs_filename = self.find_config(config_filename)
 
-        loaded_config = self.load_yaml_config(self.fq_filename)
+        loaded_config = self.load_yaml_config(self.abs_filename)
         if template is not None and loaded_config is not None:
             # self.data = {**template, **loaded_config}
             self.data = {**template}
@@ -93,7 +93,7 @@ class Config:
 
         # Build prioritized list of config files
         config_file_list = (
-            "{0}/{1}".format(os.getcwd(), config_filename),
+            os.path.abspath(config_filename),
             "{0}/{1}/{2}".format(
                 os.path.expanduser("~"), self._home_config_dir, config_filename
             ),
@@ -110,15 +110,15 @@ class Config:
         return None
 
     # ToDo: Add JSON load
-    # def load_json_config (config_fq_filename: str, logger: logging.Logger = None) -> dict:
+    # def load_json_config (config_abs_filename: str, logger: logging.Logger = None) -> dict:
 
     def load_yaml_config(
-        self, config_fq_filename: str, logger: logging.Logger = None
+        self, config_abs_filename: str, logger: logging.Logger = None
     ) -> dict:
         """Routine for loading config from YAML file.
 
         Args:
-            config_fq_filename (str): fully-qualified file name
+            config_abs_filename (str): fully-qualified file name
 
         Returns:
             dict: config dictionary
@@ -129,22 +129,22 @@ class Config:
         """
         logger = logger or logging.getLogger(__name__)
 
-        logger.debug("load_config params: config_fq_filename=%s", config_fq_filename)
+        logger.debug("load_config params: config_abs_filename=%s", config_abs_filename)
 
         config = {}
-        if config_fq_filename and os.path.exists(config_fq_filename):
-            logger.info("Reading config from file: %s", config_fq_filename)
+        if config_abs_filename and os.path.exists(config_abs_filename):
+            logger.info("Reading config from file: %s", config_abs_filename)
             try:
-                with open(config_fq_filename, "rt") as config_file:
+                with open(config_abs_filename, "rt") as config_file:
                     config = yaml.safe_load(config_file.read())
             except IOError:
-                logger.error("Config file IOError: %s", config_fq_filename)
+                logger.error("Config file IOError: %s", config_abs_filename)
             # Adding reference to filename used when retrieving config
             if config is None:
                 config = {}
-            config["_ConfigFQFilename"] = config_fq_filename
+            config["_ConfigFQFilename"] = config_abs_filename
             logger.debug(json.dumps(config))
         else:
-            logger.error("Config file %s not found.", config_fq_filename)
+            logger.error("Config file %s not found.", config_abs_filename)
             return None
         return config

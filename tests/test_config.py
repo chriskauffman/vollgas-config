@@ -48,7 +48,7 @@ def test_find_config():  # pylint: disable=missing-docstring
 
     for item in FILE_LIST:
         test_config = config.Config(TEST_CONFIG_FILE, TEST_HOME_DIR)
-        assert test_config.fq_filename == item
+        assert test_config.abs_filename == item
         os.remove(item)
 
     os.rmdir(HOME_CONFIG_DIR)
@@ -59,8 +59,8 @@ def test_load_config():  # pylint: disable=missing-docstring
         resource_filename(__name__, "resources/{0}".format(TEST_CONFIG_FILE)),
         TEST_HOME_DIR,
     )
-    assert test_config.fq_filename is not None
-    assert test_config.fq_filename == resource_filename(
+    assert test_config.abs_filename is not None
+    assert test_config.abs_filename == resource_filename(
         __name__, "resources/{0}".format(TEST_CONFIG_FILE)
     )
 
