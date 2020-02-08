@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vollgas_config"
-version = "0.2.3"
+version = "1.0.0-beta.2"
 description = "Config tool provides basic configuration file locating, loading and validation."
 authors = ["Christopher Kauffman <chriskauffman@vollgas.net>"]
 license = "MIT"
@@ -8,6 +8,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.7"
 pyyaml = "^5.3"
+mergedeep = "^1.1.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3"
