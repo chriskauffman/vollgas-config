@@ -21,11 +21,13 @@ Todo:
 """
 import json
 import logging
-import mergedeep
 import os.path
+
+import mergedeep
 import yaml
 
 
+# pylint: disable=too-few-public-methods
 class Config:
     """Config Class
 
@@ -37,7 +39,6 @@ class Config:
         config_filename: str,
         home_config_dir: str,
         template: dict = None,
-        logger: logging.Logger = None,
     ):
         """Routine for finding the config file.
 
@@ -94,11 +95,9 @@ class Config:
         # Build prioritized list of config files
         config_file_list = (
             os.path.abspath(config_filename),
-            "{0}/{1}/{2}".format(
-                os.path.expanduser("~"), self._home_config_dir, config_filename
-            ),
-            "/usr/local/etc/{0}".format(config_filename),
-            "/etc/{0}".format(config_filename),
+            f'{os.path.expanduser("~")}/{self._home_config_dir}/{config_filename}',
+            f"/usr/local/etc/{config_filename}",
+            f"/etc/{config_filename}",
         )
 
         # See which config file exists, return the 1st one found
@@ -132,8 +131,10 @@ class Config:
         if config_abs_filename and os.path.isfile(config_abs_filename):
             logger.info("Reading config from file: %s", config_abs_filename)
             try:
-                with open(config_abs_filename, "rt") as config_file:
-                    if config_abs_filename.endswith(".yaml") or config_abs_filename.endswith(".yml"):
+                with open(config_abs_filename, "rt", encoding="utf_8") as config_file:
+                    if config_abs_filename.endswith(
+                        ".yaml"
+                    ) or config_abs_filename.endswith(".yml"):
                         config = yaml.safe_load(config_file.read())
                     elif config_abs_filename.endswith(".json"):
                         config = json.load(config_file)
