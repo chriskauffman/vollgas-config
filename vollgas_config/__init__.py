@@ -19,6 +19,4 @@ Todo:
 
 """
 
-__version__ = "1.1.0"
-
-from .config import Config  # noqa
+__version__ = "2.0.0"
