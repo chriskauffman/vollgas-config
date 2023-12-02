@@ -117,7 +117,7 @@ class Config(UserDict):
 
         self.data = {}
 
-        raw_config = None
+        raw_config = {}
         if self.path and os.path.isfile(self.path):
             logger.info("read: loading config from file: %s", self.path)
             with open(self.path, "rt", encoding="utf_8") as config_file:
@@ -125,6 +125,8 @@ class Config(UserDict):
                     raw_config = yaml.safe_load(config_file.read())
                 else:
                     raw_config = json.load(config_file)
+            if raw_config is None:
+                raw_config = {}
         else:
             logger.info("read: config file not found. path=%s", self.path)
         logger.debug("read: raw_config=%s", json.dumps(raw_config))
@@ -155,5 +157,5 @@ class Config(UserDict):
         """
         logger.debug("validate: config path=%s", self.path)
 
-        if self.schema:
+        if self.schema is not None:
             jsonschema.validate(self.data, self.schema)
