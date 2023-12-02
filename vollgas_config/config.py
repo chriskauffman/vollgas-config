@@ -19,34 +19,39 @@ Todo:
    http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
 
 """
+from collections import UserDict
 import json
 import logging
 import os.path
 
+import jsonschema
 import mergedeep
 import yaml
 
+logger = logging.getLogger(__name__)
+
 
 # pylint: disable=too-few-public-methods
-class Config:
+class Config(UserDict):
     """Config Class
 
-    Finds and loads config object
+    Loads config data from json or yaml to a dict-like object.
     """
 
     def __init__(
         self,
-        config_filename: str,
-        home_config_dir: str,
-        template: dict = None,
+        filename: str,
+        search_paths: list,
+        defaults: dict = None,
+        schema: dict = None,
     ):
-        """Routine for finding the config file.
-
-        Searches the preferred paths, in preferred order, to locate specified config file.
+        """Establishes a dict-like config object.
 
         Args:
-            config_filename (str): file name without path
-            home_config_dir (str): directory name for app config, example ".app"
+            filename (str): file name without path
+            search_paths (list): list of paths (strings) in priority order
+            defaults (dict): a set of default objects (optional)
+            schema (dict): a json schema definition for the config file (optional)
 
         Returns:
             None
@@ -55,99 +60,102 @@ class Config:
             none
 
         """
-        self._home_config_dir = home_config_dir
-        if os.path.isfile(config_filename):
-            self.abs_filename = os.path.abspath(config_filename)
-        else:
-            self.abs_filename = self._find_config(config_filename)
+        UserDict.__init__(self)
+        self.defaults = defaults
+        self.schema = schema
+        self.path = self.find(filename, search_paths)
+        self.read()
+        self.validate()
 
-        loaded_config = self._load_config(self.abs_filename)
-        if template is not None and loaded_config is not None:
-            # self.data = {**template, **loaded_config}
-            self.data = {**template}
-            mergedeep.merge(self.data, loaded_config)
-        elif template is not None and loaded_config is None:
-            self.data = {**template}
-        elif template is None and loaded_config is not None:
-            self.data = {**loaded_config}
-        else:
-            self.data = None
-
-    def _find_config(self, config_filename: str, logger: logging.Logger = None) -> str:
+    def find(self, filename: str, search_paths: list) -> str:
         """Routine for finding the config file.
 
         Searches the preferred paths, in preferred order, to locate specified config file.
 
         Args:
-            config_filename (str): file name without path
+            filename (str): file name without path
+            search_paths (list): list of paths (strings) in priority order
 
         Returns:
-            str: fully-qualified file name
+            str: path
 
         Raises:
             none
 
         """
-        logger = logger or logging.getLogger(__name__)
-
-        logger.debug("find_config params: config_filename=%s", config_filename)
-
-        # Build prioritized list of config files
-        config_file_list = (
-            os.path.abspath(config_filename),
-            f'{os.path.expanduser("~")}/{self._home_config_dir}/{config_filename}',
-            f"/usr/local/etc/{config_filename}",
-            f"/etc/{config_filename}",
+        logger.debug(
+            "find: params filename=%s, search_paths=%s", filename, search_paths
         )
 
         # See which config file exists, return the 1st one found
-        for config_file in config_file_list:
-            if os.path.isfile(config_file):
-                logger.debug("find_config: using %s", config_file)
-                return config_file
-
+        for path in search_paths:
+            file_path = os.path.join(path, filename)
+            if os.path.isfile(file_path):
+                logger.info("find: config located at path=%s", file_path)
+                return file_path
+        logger.info(
+            "find: config file not found. filename=%s, search_paths=%s",
+            filename,
+            search_paths,
+        )
         return None
 
-    def _load_config(
-        self, config_abs_filename: str, logger: logging.Logger = None
-    ) -> dict:
-        """Routine for loading config from YAML or JSON file.
+    def read(self):
+        """Load config from YAML or JSON file and merge defaults
 
         Args:
-            config_abs_filename (str): fully-qualified file name
+            none
 
         Returns:
-            dict: config dictionary
+            none
 
         Raises:
             none
 
         """
-        logger = logger or logging.getLogger(__name__)
+        logger.debug("read: config path=%s", self.path)
 
-        logger.debug("load_config params: config_abs_filename=%s", config_abs_filename)
+        self.data = {}
 
-        config = {}
-        if config_abs_filename and os.path.isfile(config_abs_filename):
-            logger.info("Reading config from file: %s", config_abs_filename)
-            try:
-                with open(config_abs_filename, "rt", encoding="utf_8") as config_file:
-                    if config_abs_filename.endswith(
-                        ".yaml"
-                    ) or config_abs_filename.endswith(".yml"):
-                        config = yaml.safe_load(config_file.read())
-                    elif config_abs_filename.endswith(".json"):
-                        config = json.load(config_file)
-                    else:
-                        logger.error("Bad file: %s", config_abs_filename)
-            except IOError:
-                logger.error("Config file IOError: %s", config_abs_filename)
-            # Adding reference to filename used when retrieving config
-            if config is None:
-                config = {}
-            config["_ConfigFQFilename"] = config_abs_filename
-            logger.debug(json.dumps(config))
+        raw_config = {}
+        if self.path and os.path.isfile(self.path):
+            logger.info("read: loading config from file: %s", self.path)
+            with open(self.path, "rt", encoding="utf_8") as config_file:
+                if self.path.endswith(".yaml") or self.path.endswith(".yml"):
+                    raw_config = yaml.safe_load(config_file.read())
+                else:
+                    raw_config = json.load(config_file)
+            if raw_config is None:
+                raw_config = {}
         else:
-            logger.error("Config file %s not found.", config_abs_filename)
-            return None
-        return config
+            logger.info("read: config file not found. path=%s", self.path)
+        logger.debug("read: raw_config=%s", json.dumps(raw_config))
+
+        merged_config = {}
+        if self.defaults:
+            logger.debug("read: merging config defaults")
+            mergedeep.merge(merged_config, self.defaults, raw_config)
+        else:
+            merged_config = raw_config
+        logger.debug("read: merged_config=%s", json.dumps(merged_config))
+
+        if merged_config:
+            self.update(merged_config)
+
+    def validate(self):
+        """Validate config using json schema.
+
+        Args:
+            none
+
+        Returns:
+            none
+
+        Raises:
+            none
+
+        """
+        logger.debug("validate: config path=%s", self.path)
+
+        if self.schema is not None:
+            jsonschema.validate(self.data, self.schema)
