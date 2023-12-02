@@ -6,63 +6,41 @@
 #   * none
 #
 
-# Primary options - Must be set to execute correctly
-project_name := vollgas-config
+log_dir := log
+WORKING_DIRS := $(log_dir)
 
-# Python variables
-virtualenv_name := $(project_name)
-python_version := 3.7.5
-# Modules loaded by poetry
-# python_mdules :=
+.PHONY: init
+init : | $(WORKING_DIRS) tmp
+	poetry install --without dev
 
-# Docker
-DOCKER = docker
-docker_run_opts = --interactive --tty --rm
-docker_image = $(project_name)
-docker_version = latest
-docker_container = $(docker_image):$(docker_version)
-DOCKER_RUN = $(DOCKER) run $(docker_run_opts) \
-	--volume "$(shell pwd):/$(project_name)" \
-	--workdir /$(project_name) \
-	$(docker_container)
+.PHONY: build
+build: lint test
+	poetry build
 
-
-.PHONY : init
-init : | poetry-install
-	# TBD
+.PHONY: lint
+lint: black
+	poetry run flake8 tests/
+	poetry run flake8 vollgas_config/
+	poetry run pylint tests/
+	poetry run pylint vollgas_config/
 
 .PHONY : black
 black :
-	poetry run black ./
+	poetry run black tests/
+	poetry run black vollgas_config/
 
-.PHONY : test
-test : docker-build
-	poetry build
-	$(DOCKER_RUN) bash -c "\
-		~/.poetry/bin/poetry install && \
-	    ~/.poetry/bin/poetry run pytest --pylava \
-	    "
-.python-version: install-python
+.PHONY: test
+test:
+	poetry run pytest
 
-.PHONY : poetry-install
-poetry-install : | python-install
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-	poetry self update
-	poetry install
+.PHONY: dev
+dev:
+	brew install --quiet poetry yamllint
+	poetry install --with dev
 
-.PHONY : python-install
-python-install :
-ifneq ($(findstring $(python_version),$(shell pyenv versions)),$(python_version))
-	pyenv install $(python_version)
-endif
-	pyenv local $(python_version)
+$(WORKING_DIRS) tmp:
+	mkdir $@
 
-docker-bash : docker-build
-	$(DOCKER_RUN) bash
-
-docker-build :
-	docker build --tag $(project_name) ./
-
-.PHONY : clean
-clean :
-	- rm .python-version
+.PHONY: clean
+clean:
+	rm -rf $(WORKING_DIRS)
