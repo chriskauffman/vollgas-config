@@ -1,4 +1,4 @@
-# config-tool makefile
+# vollgas-config makefile
 #
 # Setup environment, etc.
 #

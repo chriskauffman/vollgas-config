@@ -1,4 +1,4 @@
-# Config Tool Change Log
+# Vollgas Config Change Log
 
 All notable changes to this project will be documented in this file.
 
